@@ -1,15 +1,15 @@
-/.gradle/
-/build/
-/.idea/libraries/
-/.idea/artifacts/
-/.idea/modules/
-/.idea/.name
-/.idea/workspace.xml
-/.idea/modules.xml
-/.idea/cssdialects.xml
-/out/
-/bin/
-/jre/
+/java/.gradle/
+/java/build/
+/java/.idea/libraries/
+/java/.idea/artifacts/
+/java/.idea/modules/
+/java/.idea/.name
+/java/.idea/workspace.xml
+/java/.idea/modules.xml
+/java/.idea/cssdialects.xml
+/java/out/
+/java/bin/
+/java/jre/
 
 # ---> Java
 *.class
@@ -26,13 +26,7 @@ hs_err_pid*
 
 publish.gradle
 
-/data/
-/logs/
-/*.json
 
-/index_cache/
-/script_build/
-/web/
 
 ##CodeLite
 #
