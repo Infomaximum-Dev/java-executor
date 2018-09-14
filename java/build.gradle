@@ -17,27 +17,26 @@ sourceSets {
         resources {
             srcDirs "src/main/resources"
         }
-        compileClasspath += configurations.provided
-        runtimeClasspath += configurations.provided
+
     }
     packer {
         java.srcDir 'src/packer/java'
         resources {
             srcDirs "src/packer/resources"
         }
-        compileClasspath += configurations.provided + main.output
-        runtimeClasspath += configurations.provided + main.output
+        compileClasspath += main.output
+        runtimeClasspath += main.output
     }
     test {
         java.srcDir 'src/test/java'
-        compileClasspath += configurations.provided + main.output + packer.output
-        runtimeClasspath += configurations.provided + main.output + packer.output
+        compileClasspath += main.output + packer.output
+        runtimeClasspath += main.output + packer.output
     }
     test_integration {
         java.srcDir 'src/test_integration/java'
         resources.srcDir 'src/test_integration/resources'
-        compileClasspath += configurations.provided + main.output + test.output + packer.output
-        runtimeClasspath += configurations.provided + main.output + test.output + packer.output
+        compileClasspath += main.output + test.output + packer.output
+        runtimeClasspath += main.output + test.output + packer.output
     }
 }
 
