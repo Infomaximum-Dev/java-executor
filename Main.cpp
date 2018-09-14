@@ -19,8 +19,8 @@
 const std::wstring RunAsAdminId(L"run_as_admin");
 const std::wstring CmdLineId(L"cmd_line");
 const std::wstring WorkingDirId(L"working_dir");
-const std::wstring DirPrefix(L"<dir_path>");
-const std::wstring CurrentAppPathPrefix(L"<current_app_path>");
+const std::wstring DirPath(L"<dir_path>");
+const std::wstring CurrentAppPath(L"<current_app_path>");
 const std::wstring TmpPrefix(L"infomaximum_");
 
 google_breakpad::ExceptionHandler	handler(Path::GetDumpDir(), nullptr, [](const wchar_t* /*dump_path*/, const wchar_t* /*id*/, void* /*context*/,
@@ -46,10 +46,10 @@ Error ExecuteProcess(const std::wstring& cmd, const std::wstring& workingDir)
 	sa.bInheritHandle = TRUE;
 
 	HANDLE hStdout = CreateFile(stdoutFilePath.c_str(),
-		FILE_APPEND_DATA,
+		GENERIC_READ | GENERIC_WRITE,
 		FILE_SHARE_WRITE | FILE_SHARE_READ,
 		&sa,
-		OPEN_ALWAYS,
+		CREATE_ALWAYS,
 		FILE_ATTRIBUTE_NORMAL,
 		NULL);
 
@@ -118,10 +118,10 @@ Error RunJavaInstaller(const std::wstring& installationDir, const std::wstring& 
 		return Error(L"cmd_line not found in resource");
 	}
 
-	boost::replace_all(cmdLine, DirPrefix, installationDir);
-	boost::replace_all(cmdLine, CurrentAppPathPrefix, exeFullPath);
+	boost::replace_all(cmdLine, DirPath, installationDir);
+	boost::replace_all(cmdLine, CurrentAppPath, exeFullPath);
 
-	boost::replace_all(workingDir, DirPrefix, installationDir);
+	boost::replace_all(workingDir, DirPath, installationDir);
 
 	return ExecuteProcess(cmdLine, workingDir);
 }
