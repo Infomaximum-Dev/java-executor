@@ -107,6 +107,40 @@ BOOL WINAPI UnpackZip(HMODULE hModule, const WCHAR* type, WCHAR* resName, LONG_P
 	return unpackParam->err.Succeeded() ? TRUE : FALSE;
 }
 
+BOOL WINAPI ExtractBinary(HMODULE hModule, const WCHAR* type, WCHAR* resName, LONG_PTR param)
+{
+	std::list<std::vector<uint8_t>>* dst = (std::list<std::vector<uint8_t>>*)param;
+
+	HRSRC hResource = FindResourceW(NULL, resName, type);
+	if (hResource == NULL)
+	{
+		return FALSE;
+	}
+
+	HGLOBAL hFileResource = LoadResource(NULL, hResource);
+	if (hFileResource == NULL)
+	{
+		return FALSE;
+	}
+
+	void* pData = LockResource(hFileResource);
+	if (pData != NULL)
+	{
+		const DWORD size = SizeofResource(NULL, hResource);
+		if (size > 0)
+		{
+			std::vector<uint8_t> data;
+			data.resize(size);
+			memcpy(&data[0], pData, size);
+			dst->emplace_back(std::move(data));
+		}
+		UnlockResource(pData);
+	}
+	FreeResource(hFileResource);
+
+	return TRUE;
+}
+
 std::wstring QueryStringFileInfo(LPCVOID pVersionInfoBlock, const std::wstring& subName)
 {
 	void* pValue = NULL;
@@ -164,6 +198,43 @@ std::wstring PackageManager::GetStringFileInfo(const std::wstring& subName)
 	}
 
 	FreeResource(hGlobal);
+
+	return result;
+}
+
+std::vector<uint8_t> PackageManager::GetBinaryResource(const std::wstring& subName)
+{
+	std::vector<uint8_t> result;
+
+	HRSRC hrsrc = FindResourceEx(NULL, RT_RCDATA, subName.c_str(), MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL));
+	if (hrsrc)
+	{
+		HGLOBAL hglob = LoadResource(NULL, hrsrc);
+		if (hglob)
+		{
+			char* pData = reinterpret_cast<char*>(LockResource(hglob));
+			if (pData)
+			{
+				const DWORD size = SizeofResource(NULL, hrsrc);
+				if (size > 0)
+				{
+					result.resize(size);
+					memcpy(&result[0], pData, size);
+				}
+
+				UnlockResource(pData);
+			}
+			FreeResource(hglob);
+		}
+	}
+
+	return result;
+}
+
+std::list<std::vector<uint8_t>> PackageManager::GetAllBinaryResources(const std::wstring& id)
+{
+	std::list<std::vector<uint8_t>> result;
+	EnumResourceNamesW(NULL, id.c_str(), ExtractBinary, (LONG_PTR)&result);
 
 	return result;
 }

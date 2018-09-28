@@ -8,6 +8,7 @@
 #include <nana/gui/dragger.hpp>
 #include <nana/gui/widgets/progress.hpp>
 #include <nana/gui/timer.hpp>
+#include <nana/gui/animation.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <thread>
 
@@ -19,6 +20,8 @@
 const std::wstring RunAsAdminId(L"run_as_admin");
 const std::wstring CmdLineId(L"cmd_line");
 const std::wstring WorkingDirId(L"working_dir");
+const std::wstring BackgroundId(L"background.bmp");
+const std::wstring PictureId(L"PICTURE");
 const std::wstring DirPath(L"<dir_path>");
 const std::wstring CurrentAppPath(L"<current_app_path>");
 const std::wstring TmpPrefix(L"infomaximum_");
@@ -153,62 +156,43 @@ void ShowSplashWindow(HANDLE& hSplashInitializedEvent)
 	using namespace nana;
 
 	// appearance(bool has_decoration, bool taskbar, bool floating, bool no_activate, bool min, bool max, bool sizable)
+	form fm(API::make_center(600, 400), appearance(false, false, true, true, false, false, false));
 
-	const color bgcolor(40, 40, 140);
-	const color fgcolor(220, 220, 220);
+	std::vector<uint8_t> background = PackageManager::GetBinaryResource(BackgroundId);
+	std::list<std::vector<uint8_t>> pictures = PackageManager::GetAllBinaryResources(PictureId);
 
-	form fm(API::make_center(440, 220), appearance(false, false, true, true, false, false, false));
-	fm.bgcolor(bgcolor);
+	frameset fset;
+	for (const std::vector<uint8_t>& pic : pictures)
+	{
+		nana::paint::image img;
+		img.open(&pic[0], pic.size());
+		fset.push_back(std::move(img));
+	}
 
-	const std::wstring companyName = PackageManager::GetStringFileInfo(L"CompanyName");
-	const std::wstring productName = PackageManager::GetStringFileInfo(L"ProductName");
+	animation ani(30);
+	ani.push_back(fset);
+	ani.output(fm, nana::point(282, 242));
+	ani.looped(true);
+	ani.play();
 
-	label title(fm);
-	title.caption(std::wstring(L"<size=11>").append(companyName).append(L"</>"));
-	title.format(true);
-	title.fgcolor(fgcolor);
-	//title.text_align(align::left, align_v::center);
-
-	//label text(fm, "<size=26>Proceset</>"); // font=\"Consolas\"
-	label text(fm);
-	text.caption(std::wstring(L"<size=22>").append(productName).append(L"</>"));
-	text.format(true);
-	text.fgcolor(fgcolor);
-	text.text_align(align::center, align_v::center);
-
-	progress pr(fm);
-	pr.unknown(true);
-	//pr.borderless(false);
-	pr.bgcolor(bgcolor);
-
-	pr.scheme().gradient_fgcolor = color();
-	pr.scheme().gradient_bgcolor = color();
-	//pr.scheme().activated = bgcolor;
-	//pr.scheme().background = bgcolor;
-	pr.scheme().foreground = fgcolor;
-
-	fm.div("vert <title height=30% margin=[0,0,0,10]> <text> <progress height=5% margin=[0,80,0,80]> <>"); // height=50%
-	fm["title"] << title;
-	fm["text"] << text;
-	fm["progress"] << pr;
+	nana::paint::image img;
+	img.open(&background[0], background.size());
+	drawing dw(fm);
+	dw.draw([&img](nana::paint::graphics& graph)
+	{
+		if (!img.empty())
+		{
+			img.paste(graph, nana::point{});
+		}
+	});
+	dw.update();
 
 	dragger dg;
 	dg.target(fm);
 	dg.trigger(fm);
-	dg.trigger(title);
-	dg.trigger(text);
-	dg.trigger(pr);
 
 	fm.collocate();
 	fm.show();
-
-	timer timer_;
-	timer_.elapse([&pr](const nana::arg_elapse& a)
-	{
-		pr.inc();
-	});
-	timer_.interval(1);
-	timer_.start();
 
 	SetEvent(hSplashInitializedEvent);
 	nana::exec();
@@ -249,7 +233,7 @@ int main(int /*argc*/, char** /*argv*/)
 	if (!err.Succeeded())
 	{
 		ShowError(err);
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	const std::wstring requireAdmin = PackageManager::GetStringFromResource(RunAsAdminId);
@@ -260,7 +244,7 @@ int main(int /*argc*/, char** /*argv*/)
 		if (!err.Succeeded())
 		{
 			ShowError(err);
-			return 1;
+			return EXIT_FAILURE;
 		}
 
 		if (!haveAdminRights)
@@ -279,12 +263,12 @@ int main(int /*argc*/, char** /*argv*/)
 			if (!ShellExecuteEx(&si))
 			{
 				ShowError(Error(GetLastError()));
-				return 1;
+				return EXIT_FAILURE;
 			}
 
 			CloseHandle(si.hProcess);
 
-			return 0;
+			return EXIT_SUCCESS;
 		}
 	}
 
@@ -293,14 +277,14 @@ int main(int /*argc*/, char** /*argv*/)
 	if (!err.Succeeded())
 	{
 		ShowError(err);
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	err = UnpackResource(tempDir);
 	if (!err.Succeeded())
 	{
 		ShowError(err);
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	err = RunJavaInstaller(tempDir, exeFullPath);
@@ -311,5 +295,5 @@ int main(int /*argc*/, char** /*argv*/)
 
 	RemoveFolder(tempDir);
 
-	return err.Succeeded() ? 0 : 1;
+	return err.Succeeded() ? EXIT_SUCCESS : EXIT_FAILURE;
 }
