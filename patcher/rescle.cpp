@@ -6,8 +6,8 @@
 // http://code.google.com/p/rescle/
 
 #include "rescle.h"
-#include "StringConverter.hpp"
-#include "unique_resource.h"
+#include "../common/StringConverter.hpp"
+#include "../common/unique_resource.h"
 #include <sstream> // wstringstream
 #include <iomanip> // setw, setfill
 

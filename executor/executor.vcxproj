@@ -10,21 +10,8 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="File.cpp" />
-    <ClCompile Include="Patcher.cpp" />
-    <ClCompile Include="rescle.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Error.hpp" />
-    <ClInclude Include="File.h" />
-    <ClInclude Include="rescle.h" />
-    <ClInclude Include="ResourceParam.h" />
-    <ClInclude Include="StringConverter.hpp" />
-    <ClInclude Include="unique_resource.h" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{93C3F865-A9DA-47A9-BFA2-46FBF92AAF9C}</ProjectGuid>
+    <ProjectGuid>{3DDDE065-1417-4294-ACE6-B7BE358E87C9}</ProjectGuid>
     <RootNamespace>
     </RootNamespace>
     <Keyword>
@@ -56,16 +43,16 @@
     <_ProjectFileVersion>11.0.61030.0</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IntDir>$(Configuration)\$(ProjectName)</IntDir>
+    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
     <GenerateManifest>true</GenerateManifest>
     <TargetName>$(ProjectName)</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
+    <OutDir>$(SolutionDir)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IntDir>$(Configuration)\$(ProjectName)</IntDir>
+    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
     <GenerateManifest>true</GenerateManifest>
     <TargetName>$(ProjectName)</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
+    <OutDir>$(SolutionDir)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <PreBuildEvent>
@@ -78,8 +65,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\libraries\vs2015\boost-1.63.0;.\</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>UNICODE;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\;$(SolutionDir)..\..\..\libraries\vs2015\breakpad-chrome_58\include;$(SolutionDir)..\..\..\libraries\vs2015\nana-1.6.2\include;$(SolutionDir)..\..\..\libraries\vs2015\libzip-1.3.2\include;$(SolutionDir)..\..\..\libraries\vs2015\boost-1.63.0;..\common</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -91,14 +78,14 @@
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>exception_handler.lib;crash_generation_client.lib;common.lib;nana.lib;zip.lib;zlibstat.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\libraries\vs2015\boost-1.63.0\lib\$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\libraries\vs2015\breakpad-chrome_58\lib\$(Platform)\$(Configuration);$(SolutionDir)..\..\..\libraries\vs2015\nana-1.6.2\lib\$(Platform)\$(Configuration);$(SolutionDir)..\..\..\libraries\vs2015\libzip-1.3.2\lib\$(Platform)\$(Configuration);$(SolutionDir)..\..\..\libraries\vs2015\zlib-1.2.8\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
       <EnableUAC>true</EnableUAC>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/ENTRY:mainCRTStartup /FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
@@ -121,8 +108,8 @@
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\libraries\vs2015\boost-1.63.0;.\</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>UNICODE;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\;$(SolutionDir)..\..\..\libraries\vs2015\breakpad-chrome_58\include;$(SolutionDir)..\..\..\libraries\vs2015\nana-1.6.2\include;$(SolutionDir)..\..\..\libraries\vs2015\libzip-1.3.2\include;$(SolutionDir)..\..\..\libraries\vs2015\boost-1.63.0;..\common</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -131,14 +118,14 @@
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>exception_handler.lib;crash_generation_client.lib;common.lib;nana.lib;zip.lib;zlibstat.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\libraries\vs2015\boost-1.63.0\lib\$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\libraries\vs2015\breakpad-chrome_58\lib\$(Platform)\$(Configuration);$(SolutionDir)..\..\..\libraries\vs2015\nana-1.6.2\lib\$(Platform)\$(Configuration);$(SolutionDir)..\..\..\libraries\vs2015\libzip-1.3.2\lib\$(Platform)\$(Configuration);$(SolutionDir)..\..\..\libraries\vs2015\zlib-1.2.8\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
       <EnableUAC>true</EnableUAC>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
       <EntryPointSymbol>
       </EntryPointSymbol>
@@ -156,6 +143,24 @@
       <AdditionalManifestFiles>$(SolutionDir)suppress_pca.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\common\File.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="PackageManager.cpp" />
+    <ClCompile Include="ZipArchive.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="main.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\common\Error.hpp" />
+    <ClInclude Include="..\common\File.h" />
+    <ClInclude Include="..\common\Path.hpp" />
+    <ClInclude Include="..\common\StringConverter.hpp" />
+    <ClInclude Include="PackageManager.h" />
+    <ClInclude Include="ResourceParam.h" />
+    <ClInclude Include="ZipArchive.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
