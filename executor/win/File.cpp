@@ -28,6 +28,34 @@ Error OpenFile_Write(const std::wstring& path, HANDLE& descriptor)
 	return Create(path.c_str(), GENERIC_WRITE, FILE_SHARE_READ, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, descriptor);
 }
 
+Error OpenFile_Read(const std::wstring& path, HANDLE& descriptor)
+{
+	return Create(path.c_str(), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, FILE_ATTRIBUTE_READONLY, descriptor);
+}
+
+Error GetFileSize(HANDLE hFile, uint64_t& dest)
+{
+	dest = 0;
+	LARGE_INTEGER size = { 0, 0 };
+
+	if (GetFileSizeEx(hFile, &size))
+	{
+		static_assert(sizeof(uint64_t) == sizeof(LARGE_INTEGER), "sizeof(uint64_t) != sizeof(LARGE_INTEGER)");
+		dest = size.QuadPart;
+		return Error();
+	}
+
+	return Error(GetLastError());
+}
+
+Error FileRead(HANDLE file, void* buff, DWORD bytesToRead, DWORD* numOfReadBytes)
+{
+	*numOfReadBytes = 0;
+
+	return ReadFile(file, buff, bytesToRead, numOfReadBytes, NULL) != FALSE ? Error() : Error(GetLastError());
+}
+
+
 } // namespace
 
 
@@ -46,6 +74,34 @@ Error File::OpenWrite(const std::wstring& path)
 	Close();
 
 	return OpenFile_Write(path, descriptor);
+}
+
+Error File::OpenRead(const std::wstring& path)
+{
+	Close();
+
+	return OpenFile_Read(path, descriptor);
+}
+
+Error File::Read(std::vector<uint8_t>& dst)
+{
+	uint64_t fileSize = 0;
+	Error err = GetFileSize(descriptor, fileSize);
+	if (!err.Succeeded())
+	{
+		return err;
+	}
+
+	dst.resize(fileSize);
+
+	DWORD readCount;
+	err = Read(&dst[0], static_cast<DWORD>(fileSize), readCount);
+	if (!err.Succeeded())
+	{
+		return err;
+	}
+
+	return Error();
 }
 
 Error File::Write(const uint8_t* pBuffer, const DWORD dwBytesToWrite)
@@ -86,4 +142,27 @@ void File::Close()
 		CloseHandle(descriptor);
 		descriptor = INVALID_HANDLE_VALUE;
 	}
+}
+
+Error File::Read(BYTE* pBuffer, const DWORD bufferSize, DWORD& readCount) const
+{
+	readCount = 0;
+	while (readCount < bufferSize)
+	{
+		DWORD dwRead = 0;
+		Error error = FileRead(descriptor, pBuffer + readCount, bufferSize - readCount, &dwRead);
+		if (!error.Succeeded())
+		{
+			return error;
+		}
+
+		if (dwRead == 0)
+		{
+			break;
+		}
+
+		readCount += dwRead;
+	}
+
+	return Error();
 }

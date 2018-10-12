@@ -1,6 +1,7 @@
 ﻿#include "PackageManager.h"
 #include "Path.hpp"
 #include "File.h"
+#include "ResourceParam.h"
 #include <nana/gui/widgets/widget.hpp>
 #include <nana/gui/widgets/label.hpp>
 #include <nana/gui/wvl.hpp>
@@ -17,11 +18,6 @@
 #include <client/windows/handler/exception_handler.h>
 #pragma warning(pop)
 
-const std::wstring RunAsAdminId(L"run_as_admin");
-const std::wstring CmdLineId(L"cmd_line");
-const std::wstring WorkingDirId(L"working_dir");
-const std::wstring BackgroundId(L"background.bmp");
-const std::wstring PictureId(L"PICTURE");
 const std::wstring DirPath(L"<dir_path>");
 const std::wstring CurrentAppPath(L"<current_app_path>");
 const std::wstring TmpPrefix(L"infomaximum_");
@@ -38,8 +34,33 @@ void ShowError(const Error& err)
 	MessageBoxW(NULL, err.getMessage().c_str(), L"Error", MB_OK | MB_ICONERROR);
 }
 
-Error ExecuteProcess(const std::wstring& cmd, const std::wstring& workingDir)
+struct EnumParam
 {
+	DWORD pid = 0;
+	bool visibleWindowExist = false;
+};
+
+BOOL CALLBACK EnumWindowsCallback(HWND hwnd, LPARAM lParam)
+{
+	EnumParam* param = (EnumParam*)lParam;
+
+	DWORD lpdwProcessId;
+	GetWindowThreadProcessId(hwnd, &lpdwProcessId);
+	if (lpdwProcessId == param->pid)
+	{
+		if (IsWindowVisible(hwnd))
+		{
+			param->visibleWindowExist = true;
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
+Error ExecuteProcess(const std::wstring& cmd, const std::wstring& workingDir, DWORD& exitCode)
+{
+	exitCode = ERROR_SUCCESS;
+
 	const std::wstring stdoutFilePath = Path::GetStdoutFilePath(std::wstring(TmpPrefix).append(L"stdout.log"));
 	File::Delete(stdoutFilePath);
 
@@ -76,7 +97,28 @@ Error ExecuteProcess(const std::wstring& cmd, const std::wstring& workingDir)
 		return Error(GetLastError());
 	}
 
-	WaitForSingleObject(pInfo.hProcess, INFINITE);
+	DWORD timeoutMs = 100;
+	for (;;)
+	{
+		EnumParam param;
+		param.pid = pInfo.dwProcessId;
+		EnumWindows(EnumWindowsCallback, (LONG_PTR)&param);
+		if (param.visibleWindowExist)
+		{
+			nana::API::exit_all();
+			WaitForSingleObject(pInfo.hProcess, INFINITE);
+			break;
+		}
+
+		if (WaitForSingleObject(pInfo.hProcess, timeoutMs) != WAIT_TIMEOUT)
+		{
+			nana::API::exit_all();
+			break;
+		}
+	}
+
+	GetExitCodeProcess(pInfo.hProcess, &exitCode);
+
 	CloseHandle(pInfo.hProcess);
 	CloseHandle(pInfo.hThread);
 	CloseHandle(hStdout);
@@ -84,37 +126,10 @@ Error ExecuteProcess(const std::wstring& cmd, const std::wstring& workingDir)
 	return Error();
 }
 
-Error IsCurrentProcessHaveAdminAccessRights(bool& result)
+Error RunJavaInstaller(const std::wstring& installationDir, const std::wstring& exeFullPath, DWORD& exitCode)
 {
-	result = false;
-
-	HANDLE hToken = NULL;
-	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken))
-	{
-		return Error(GetLastError());
-	}
-
-	Error err;
-	TOKEN_ELEVATION Elevation;
-	DWORD cbSize = sizeof(TOKEN_ELEVATION);
-	if (GetTokenInformation(hToken, TokenElevation, &Elevation, sizeof(Elevation), &cbSize)) 
-	{
-		result = Elevation.TokenIsElevated != FALSE;
-	}
-	else
-	{
-		err = Error(GetLastError());
-	}
-
-	CloseHandle(hToken);
-
-	return err;
-}
-
-Error RunJavaInstaller(const std::wstring& installationDir, const std::wstring& exeFullPath)
-{
-	std::wstring cmdLine = PackageManager::GetStringFromResource(CmdLineId);
-	std::wstring workingDir = PackageManager::GetStringFromResource(WorkingDirId);
+	std::wstring cmdLine = PackageManager::GetStringResource(ParamType, CmdLineName);
+	std::wstring workingDir = PackageManager::GetStringResource(ParamType, WorkingDirName);
 
 	if (cmdLine.empty())
 	{
@@ -126,7 +141,7 @@ Error RunJavaInstaller(const std::wstring& installationDir, const std::wstring& 
 
 	boost::replace_all(workingDir, DirPath, installationDir);
 
-	return ExecuteProcess(cmdLine, workingDir);
+	return ExecuteProcess(cmdLine, workingDir, exitCode);
 }
 
 void RemoveFolder(const std::wstring& dir_)
@@ -149,8 +164,6 @@ void RemoveFolder(const std::wstring& dir_)
 	SHFileOperationW(&param);
 }
 
-
-
 void ShowSplashWindow(HANDLE& hSplashInitializedEvent)
 {
 	using namespace nana;
@@ -158,8 +171,8 @@ void ShowSplashWindow(HANDLE& hSplashInitializedEvent)
 	// appearance(bool has_decoration, bool taskbar, bool floating, bool no_activate, bool min, bool max, bool sizable)
 	form fm(API::make_center(600, 400), appearance(false, false, true, true, false, false, false));
 
-	std::vector<uint8_t> background = PackageManager::GetBinaryResource(BackgroundId);
-	std::list<std::vector<uint8_t>> pictures = PackageManager::GetAllBinaryResources(PictureId);
+	std::vector<uint8_t> background = PackageManager::GetBinaryResource(BackgroundName);
+	std::list<std::vector<uint8_t>> pictures = PackageManager::GetAllBinaryResources(PictureType);
 
 	frameset fset;
 	for (const std::vector<uint8_t>& pic : pictures)
@@ -198,102 +211,76 @@ void ShowSplashWindow(HANDLE& hSplashInitializedEvent)
 	nana::exec();
 }
 
-Error UnpackResource(const std::wstring& tempDir)
+void ExecuteChildProcess(Error& result, DWORD& exitCode, HANDLE& hSplashInitializedEvent)
 {
-	HANDLE hSplashInitializedEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-	if (hSplashInitializedEvent == NULL)
-	{
-		return Error(GetLastError());
-	}
+	result = Error();
+	exitCode = ERROR_SUCCESS;
 
-	std::thread unpackThread([&tempDir, &hSplashInitializedEvent]()
-	{
-		PackageManager::UnpackZipResource(tempDir);
-
-		WaitForSingleObject(hSplashInitializedEvent, INFINITE);
-		nana::API::exit_all();
-	});
-
-	ShowSplashWindow(hSplashInitializedEvent);
-
-	if (unpackThread.joinable())
-	{
-		unpackThread.join();
-	}
-
-	CloseHandle(hSplashInitializedEvent);
-
-	return Error();
-}
-
-int main(int /*argc*/, char** /*argv*/)
-{
 	std::wstring exeFullPath;
 	Error err = Path::GetApplicationFilePath(exeFullPath);
 	if (!err.Succeeded())
 	{
-		ShowError(err);
-		return EXIT_FAILURE;
-	}
-
-	const std::wstring requireAdmin = PackageManager::GetStringFromResource(RunAsAdminId);
-	if (requireAdmin == L"true")
-	{
-		bool haveAdminRights = false;
-		Error err = IsCurrentProcessHaveAdminAccessRights(haveAdminRights);
-		if (!err.Succeeded())
-		{
-			ShowError(err);
-			return EXIT_FAILURE;
-		}
-
-		if (!haveAdminRights)
-		{
-			SHELLEXECUTEINFO si = { 0 };
-
-			si.cbSize = sizeof(SHELLEXECUTEINFO);
-			si.fMask = SEE_MASK_DEFAULT;
-			si.hwnd = NULL;
-			si.lpVerb = L"runas";
-			si.lpFile = exeFullPath.c_str();
-			si.lpParameters = NULL;
-			si.lpDirectory = NULL;
-			si.nShow = SW_SHOW;
-			si.hInstApp = NULL;
-			if (!ShellExecuteEx(&si))
-			{
-				ShowError(Error(GetLastError()));
-				return EXIT_FAILURE;
-			}
-
-			CloseHandle(si.hProcess);
-
-			return EXIT_SUCCESS;
-		}
+		result = err;
+		return;
 	}
 
 	std::wstring tempDir;
 	err = Error(Path::GetTempDirPath(TmpPrefix, tempDir));
 	if (!err.Succeeded())
 	{
-		ShowError(err);
-		return EXIT_FAILURE;
+		result = err;
+		return;
 	}
 
-	err = UnpackResource(tempDir);
+	err = PackageManager::UnpackZipResource(tempDir);
 	if (!err.Succeeded())
 	{
-		ShowError(err);
-		return EXIT_FAILURE;
+		result = err;
+		return;
 	}
 
-	err = RunJavaInstaller(tempDir, exeFullPath);
-	if (!err.Succeeded())
-	{
-		ShowError(err);
-	}
+	WaitForSingleObject(hSplashInitializedEvent, INFINITE);
 
+	result = RunJavaInstaller(tempDir, exeFullPath, exitCode);
 	RemoveFolder(tempDir);
+}
 
-	return err.Succeeded() ? EXIT_SUCCESS : EXIT_FAILURE;
+int main(int /*argc*/, char** /*argv*/)
+{
+	HANDLE hSplashInitializedEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	if (hSplashInitializedEvent == NULL)
+	{
+		ShowError(Error(GetLastError()));
+		return EXIT_FAILURE;
+	}
+
+	Error error;
+	DWORD exitCode = ERROR_SUCCESS;
+	std::thread executeThread(ExecuteChildProcess, std::ref(error), std::ref(exitCode), std::ref(hSplashInitializedEvent));
+
+	ShowSplashWindow(hSplashInitializedEvent);
+
+	if (executeThread.joinable())
+	{
+		executeThread.join();
+	}
+
+	CloseHandle(hSplashInitializedEvent);
+
+	if (!error.Succeeded())
+	{
+		ShowError(error);
+		return EXIT_FAILURE;
+	}
+	else if (exitCode != ERROR_SUCCESS)
+	{
+		std::wstring msg;
+		msg.append(L"child process failed, error = ").append(Error(exitCode).getMessage());
+		ShowError(Error(std::move(msg)));
+		return exitCode;
+	}
+	else
+	{
+		return EXIT_SUCCESS;
+	}
 }

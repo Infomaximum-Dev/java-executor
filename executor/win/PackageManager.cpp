@@ -2,6 +2,7 @@
 #include "Path.hpp"
 #include "ZipArchive.h"
 #include"StringConverter.hpp"
+#include "ResourceParam.h"
 #include <Windows.h>
 
 #define DEF_LANG_NEUTRAL	L"0000"
@@ -12,22 +13,22 @@
 namespace
 {
 
-std::wstring FindStringFromBinaryResourceEx(HINSTANCE hinst, LPCWSTR id, UINT langId)
+std::wstring FindStringFromBinaryResourceEx(HINSTANCE hinst, LPCWSTR type, LPCWSTR name, UINT langId)
 {
 	std::wstring result;
 
-	HRSRC hrsrc = FindResourceEx(hinst, RT_RCDATA, id, langId);
+	HRSRC hrsrc = FindResourceEx(hinst, type, name, langId);
 	if (hrsrc)
 	{
 		HGLOBAL hglob = LoadResource(hinst, hrsrc);
 		if (hglob)
 		{
-			char* pUtf8Str = reinterpret_cast<char*>(LockResource(hglob));
-			if (pUtf8Str)
+			wchar_t* pStr = reinterpret_cast<wchar_t*>(LockResource(hglob));
+			if (pStr)
 			{
 				DWORD resSize = SizeofResource(NULL, hrsrc);
-				ConvertUtf8ToUtf16(pUtf8Str, resSize, result);
-				UnlockResource(pUtf8Str);
+				result.assign(pStr, resSize / sizeof(wchar_t));
+				UnlockResource(pStr);
 			}
 			FreeResource(hglob);
 		}
@@ -168,11 +169,9 @@ std::wstring QueryStringFileInfo(LPCVOID pVersionInfoBlock, const std::wstring& 
 
 } // namespace
 
-
-
-std::wstring PackageManager::GetStringFromResource(const std::wstring id)
+std::wstring PackageManager::GetStringResource(const std::wstring& type, const std::wstring& name)
 {
-	return FindStringFromBinaryResourceEx(NULL, id.c_str(), MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL));
+	return FindStringFromBinaryResourceEx(NULL, type.c_str(), name.c_str(), MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL));
 }
 
 std::wstring PackageManager::GetStringFileInfo(const std::wstring& subName)
@@ -243,7 +242,7 @@ Error PackageManager::UnpackZipResource(const std::wstring& destDir)
 {
 	UnpackParam param;
 	param.destDir = destDir;
-	EnumResourceNamesW(NULL, L"ZIP", UnpackZip, (LONG_PTR)&param);
+	EnumResourceNamesW(NULL, ZipType.c_str(), UnpackZip, (LONG_PTR)&param);
 
 	return param.err;
 }

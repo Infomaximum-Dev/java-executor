@@ -9,7 +9,7 @@ class PackageManager
 {
 public:
 
-	static std::wstring GetStringFromResource(const std::wstring id);
+	static std::wstring GetStringResource(const std::wstring& type, const std::wstring& name);
 	static std::wstring GetStringFileInfo(const std::wstring& subName);
 	static std::vector<uint8_t> GetBinaryResource(const std::wstring& subName);
 	static std::list<std::vector<uint8_t>> GetAllBinaryResources(const std::wstring& id);
