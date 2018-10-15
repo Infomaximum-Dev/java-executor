@@ -65,7 +65,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>.\;$(SolutionDir)..\..\..\libraries\vs2015\breakpad-chrome_58\include;$(SolutionDir)..\..\..\libraries\vs2015\nana-1.6.2\include;$(SolutionDir)..\..\..\libraries\vs2015\libzip-1.3.2\include;$(SolutionDir)..\..\..\libraries\vs2015\boost-1.63.0;..\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;$(SolutionDir)..\libraries\vs2015\breakpad-chrome_58\include;$(SolutionDir)..\libraries\vs2015\nana-1.6.2\include;$(SolutionDir)..\libraries\vs2015\libzip-1.3.2\include;$(SolutionDir)..\libraries\vs2015\boost-1.63.0;..\common</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -80,7 +80,7 @@
     <Link>
       <AdditionalDependencies>exception_handler.lib;crash_generation_client.lib;common.lib;nana.lib;zip.lib;zlibstat.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\libraries\vs2015\breakpad-chrome_58\lib\$(Platform)\$(Configuration);$(SolutionDir)..\..\..\libraries\vs2015\nana-1.6.2\lib\$(Platform)\$(Configuration);$(SolutionDir)..\..\..\libraries\vs2015\libzip-1.3.2\lib\$(Platform)\$(Configuration);$(SolutionDir)..\..\..\libraries\vs2015\zlib-1.2.8\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\libraries\vs2015\breakpad-chrome_58\lib\$(Platform)\$(Configuration);$(SolutionDir)..\libraries\vs2015\nana-1.6.2\lib\$(Platform)\$(Configuration);$(SolutionDir)..\libraries\vs2015\libzip-1.3.2\lib\$(Platform)\$(Configuration);$(SolutionDir)..\libraries\vs2015\zlib-1.2.8\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
       <EnableUAC>true</EnableUAC>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
@@ -108,7 +108,7 @@
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.\;$(SolutionDir)..\..\..\libraries\vs2015\breakpad-chrome_58\include;$(SolutionDir)..\..\..\libraries\vs2015\nana-1.6.2\include;$(SolutionDir)..\..\..\libraries\vs2015\libzip-1.3.2\include;$(SolutionDir)..\..\..\libraries\vs2015\boost-1.63.0;..\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;$(SolutionDir)..\libraries\vs2015\breakpad-chrome_58\include;$(SolutionDir)..\libraries\vs2015\nana-1.6.2\include;$(SolutionDir)..\libraries\vs2015\libzip-1.3.2\include;$(SolutionDir)..\libraries\vs2015\boost-1.63.0;..\common</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -120,7 +120,7 @@
     <Link>
       <AdditionalDependencies>exception_handler.lib;crash_generation_client.lib;common.lib;nana.lib;zip.lib;zlibstat.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\libraries\vs2015\breakpad-chrome_58\lib\$(Platform)\$(Configuration);$(SolutionDir)..\..\..\libraries\vs2015\nana-1.6.2\lib\$(Platform)\$(Configuration);$(SolutionDir)..\..\..\libraries\vs2015\libzip-1.3.2\lib\$(Platform)\$(Configuration);$(SolutionDir)..\..\..\libraries\vs2015\zlib-1.2.8\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\libraries\vs2015\breakpad-chrome_58\lib\$(Platform)\$(Configuration);$(SolutionDir)..\libraries\vs2015\nana-1.6.2\lib\$(Platform)\$(Configuration);$(SolutionDir)..\libraries\vs2015\libzip-1.3.2\lib\$(Platform)\$(Configuration);$(SolutionDir)..\libraries\vs2015\zlib-1.2.8\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
       <EnableUAC>true</EnableUAC>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
