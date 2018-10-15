@@ -11,6 +11,7 @@
 #include <nana/gui/timer.hpp>
 #include <nana/gui/animation.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/scope_exit.hpp>
 #include <thread>
 
 #pragma warning(push)
@@ -216,6 +217,13 @@ void ExecuteChildProcess(Error& result, DWORD& exitCode, HANDLE& hSplashInitiali
 	result = Error();
 	exitCode = ERROR_SUCCESS;
 
+	WaitForSingleObject(hSplashInitializedEvent, INFINITE);
+
+	BOOST_SCOPE_EXIT(void)
+	{
+		nana::API::exit_all();
+	} BOOST_SCOPE_EXIT_END
+
 	std::wstring exeFullPath;
 	Error err = Path::GetApplicationFilePath(exeFullPath);
 	if (!err.Succeeded())
@@ -238,8 +246,6 @@ void ExecuteChildProcess(Error& result, DWORD& exitCode, HANDLE& hSplashInitiali
 		result = err;
 		return;
 	}
-
-	WaitForSingleObject(hSplashInitializedEvent, INFINITE);
 
 	result = RunJavaInstaller(tempDir, exeFullPath, exitCode);
 	RemoveFolder(tempDir);
