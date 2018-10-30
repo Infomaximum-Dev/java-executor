@@ -285,8 +285,6 @@ int main(int /*argc*/, char** /*argv*/)
 		ShowError(Error(std::move(msg)));
 		return exitCode;
 	}
-	else
-	{
-		return EXIT_SUCCESS;
-	}
+
+	return EXIT_SUCCESS;
 }
