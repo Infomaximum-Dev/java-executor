@@ -82,12 +82,6 @@ public:
 			zip_close(zipArchive);
 			zipArchive = nullptr;
 		}
-
-		if (zipSourceBuffer)
-		{
-			zip_source_free(zipSourceBuffer);
-			zipSourceBuffer = nullptr;
-		}
 	}
 
 	Error Unpack(const std::wstring& destDir)
